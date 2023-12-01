@@ -1,3 +1,5 @@
+import os
+
 import googleapiclient.discovery
 import googleapiclient.errors
 
@@ -16,6 +18,9 @@ class Youtube:
         
 
     def fetch_videos(self, start_time = None, end_time = None):
+        os.environ['http_proxy'] = 'http://proxy3.hkfsd.hksarg:8080'
+        os.environ['https_proxy'] = 'http://proxy3.hkfsd.hksarg:8080'
+
         channel_response = self.youtube.channels().list(
             part='contentDetails',
             id=self.channel_id,

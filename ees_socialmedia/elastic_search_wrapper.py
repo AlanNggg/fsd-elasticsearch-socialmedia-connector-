@@ -44,7 +44,6 @@ class ElasticSearchWrapper:
         try:
             # raise_on_error: DO NOT raise BulkIndexError
             responses = bulk(self.elastic_search_client, actions=documents, index=self.source, raise_on_error=False)
-            self.logger.info('responses')
             self.logger.info(responses)
         # except BulkIndexError as e:
         #     print(f"{len(e.errors)} documents failed to index:")
@@ -54,5 +53,4 @@ class ElasticSearchWrapper:
             self.logger.exception(f"Error while indexing the documents. Error: {exception}")
             raise exception
         finally:
-            self.logger.info('error responses')
             return responses
