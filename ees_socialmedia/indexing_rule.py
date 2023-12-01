@@ -31,7 +31,6 @@ class IndexingRules:
         #     exclude_ocr = {'ocr_path_template': self.exclude['ocr_path_template']}
         #     should_exclude = self.should_include_or_exclude_ocr(exclude_ocr, include_ocr, file_details, 'exclude')
         
-        print('should_ocr', should_include, file_details['file_path'])
         return should_include, ocr_language
     
     def should_include_or_exclude_ocr(self, pattern_dict, is_present_in_include, file_details, pattern_type, should_ocr_by_default=False):

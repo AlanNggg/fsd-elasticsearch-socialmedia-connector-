@@ -36,9 +36,13 @@ class Youtube:
 
             for playlist_item in playlist_item_response.get("items", []):
                 video_id = playlist_item['snippet']['resourceId']['videoId']
+
+                url = f"https://www.youtube.com/watch?v={video_id}",
+                self.logger.info(f"Fetching from: {url}")
+
                 videos.append({
                     'id': video_id,
-                    'url': f"https://www.youtube.com/watch?v={video_id}",
+                    'url': url,
                     'title': playlist_item['snippet']['title'],
                     'body': playlist_item['snippet']['description'],
                     'date': playlist_item['snippet']['publishedAt'],

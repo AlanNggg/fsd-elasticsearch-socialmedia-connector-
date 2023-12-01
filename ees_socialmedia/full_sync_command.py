@@ -40,7 +40,6 @@ class FullSyncCommand(BaseCommand):
                 self.facebook_client,
                 self.indexing_rules,
                 documents_to_index,
-                self.leadtools_engine,
             )
             for collection in self.config.get_value("socialmedia.collections"):
                 storage_with_collection = self.local_storage.get_storage_with_collection()

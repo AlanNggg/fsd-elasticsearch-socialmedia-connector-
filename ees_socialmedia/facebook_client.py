@@ -29,10 +29,13 @@ class Facebook:
                     message_list = re.split(r'\n\n|。', post['message'])
                     if len(message_list) > 1:
                         title = message_list[0]
+
+                    url = f"https://www.facebook.com/{post['id']}"
+                    self.logger.info(f"Fetching from: {url}")
         
                     posts.append({
                         'id': post['id'],
-                        'url': f"https://www.facebook.com/{post['id']}",
+                        'url': url,
                         'title': title,
                         'body': post['message'],
                         'date': post['created_time'],

@@ -42,7 +42,6 @@ class IncrementalSyncCommand(BaseCommand):
                 self.facebook_client,
                 self.indexing_rules,
                 documents_to_index,
-                self.leadtools_engine,
                 start_time,
                 end_time,
             )

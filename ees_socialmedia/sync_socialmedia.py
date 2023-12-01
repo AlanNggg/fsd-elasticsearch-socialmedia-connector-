@@ -11,7 +11,6 @@ class SyncSocialMedia:
         facebook_client,
         indexing_rules,
         documents_to_index,
-        leadtools_engine,
         start_time = None,
         end_time = None,
     ):
@@ -21,7 +20,6 @@ class SyncSocialMedia:
         self.facebook_client = facebook_client
         self.indexing_rules = indexing_rules
         self.documents_to_index = documents_to_index
-        self.leadtools_engine = leadtools_engine
         # for incremental sync
         self.start_time = start_time
         self.end_time = end_time

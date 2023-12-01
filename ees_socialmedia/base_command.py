@@ -18,28 +18,12 @@ except ImportError:
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-sys.path.append("C:/LEADTOOLS22/Examples/Common/Python") 
-from DemosTools import *
-from leadtools import LibraryLoader
-from UnlockSupport import Support
-
-LibraryLoader.add_reference("Leadtools") 
-from Leadtools import *
-from Leadtools import RasterSupport
-
-LibraryLoader.add_reference("Leadtools.Ocr") 
-from Leadtools.Ocr import *
-
-LibraryLoader.add_reference("Leadtools.Document") 
-from Leadtools.Document import *
-
 from .configuration import Configuration
 from .constant import FACEBOOK, YOUTUBE
 from .elastic_search_wrapper import ElasticSearchWrapper
 from .enterprise_search_wrapper import EnterpriseSearchWrapper
 from .facebook_client import Facebook
 from .indexing_rule import IndexingRules
-from .leadtools_engine import LeadTools
 from .local_storage import LocalStorage
 from .youtube_client import Youtube
 
@@ -165,7 +149,3 @@ class BaseCommand:
     def local_storage(self):
         """Get the object for local storage to fetch and update ids stored locally"""
         return LocalStorage(self.logger)
-
-    @cached_property
-    def leadtools_engine(self):
-        return LeadTools(self.config, self.logger) 
