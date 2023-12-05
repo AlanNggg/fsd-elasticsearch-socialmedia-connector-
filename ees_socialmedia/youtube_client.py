@@ -42,7 +42,7 @@ class Youtube:
             for playlist_item in playlist_item_response.get("items", []):
                 video_id = playlist_item['snippet']['resourceId']['videoId']
 
-                url = f"https://www.youtube.com/watch?v={video_id}",
+                url = f"https://www.youtube.com/watch?v={video_id}"
                 self.logger.info(f"Fetching from: {url}")
 
                 videos.append({
