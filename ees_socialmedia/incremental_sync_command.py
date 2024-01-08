@@ -33,7 +33,8 @@ class IncrementalSyncCommand(BaseCommand):
         """
         self.logger.debug("Starting the incremental indexing..")
 
-        thread_count = self.config.get_value("socialmedia_sync_thread_count")
+        # thread_count = self.config.get_value("socialmedia_sync_thread_count")
+        thread_count = 1
 
         start_time, end_time = time_range["start_time"], time_range["end_time"]
 
@@ -63,6 +64,10 @@ class IncrementalSyncCommand(BaseCommand):
                     self.logger.error(
                         f"Exception while updating storage: {value_error}")
 
+            # enterprise_search_sync_thread_count = self.config.get_value("enterprise_search_sync_thread_count")
+            enterprise_search_sync_thread_count = 1
+            for _ in range(enterprise_search_sync_thread_count):
+                queue.end_signal()
         except Exception as exception:
             self.logger.exception(
                 f"Error while fetching the objects . Error {exception}")

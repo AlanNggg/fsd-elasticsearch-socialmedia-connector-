@@ -52,7 +52,7 @@ schema = {
     },
     'socialmedia.collections': {
         'required': True,
-        'type': 'list', 
+        'type': 'list',
         'allowed': ['youtube', 'facebook']
     },
     'enterprise_search.api_key': {
@@ -159,6 +159,18 @@ schema = {
         'required': False,
         'type': 'integer',
         'default': 3,
+        'min': 1
+    },
+    'socialmedia_sync_thread_count': {
+        'required': False,
+        'type': 'integer',
+        'default': 5,
+        'min': 1
+    },
+    'enterprise_search_sync_thread_count': {
+        'required': False,
+        'type': 'integer',
+        'default': 5,
         'min': 1
     },
     'enable_document_permission': {

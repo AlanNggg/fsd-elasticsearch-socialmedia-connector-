@@ -34,7 +34,8 @@ class FullSyncCommand(BaseCommand):
 
         current_time = (datetime.utcnow()).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-        thread_count = self.config.get_value("socialmedia_sync_thread_count")
+        # thread_count = self.config.get_value("socialmedia_sync_thread_count")
+        thread_count = 1
 
         start_time, end_time = self.config.get_value(
             "start_time"), current_time
@@ -60,6 +61,10 @@ class FullSyncCommand(BaseCommand):
                 storage_with_collection["global_keys"][collection] = sync_socialmedia.perform_sync(
                     self.producer, datelist, thread_count, collection)
 
+            # enterprise_search_sync_thread_count = self.config.get_value("enterprise_search_sync_thread_count")
+            enterprise_search_sync_thread_count = 1
+            for _ in range(enterprise_search_sync_thread_count):
+                queue.end_signal()
         except Exception as exception:
             self.logger.error(
                 "Error while Fetching from the Social Media. Checkpoint not saved")

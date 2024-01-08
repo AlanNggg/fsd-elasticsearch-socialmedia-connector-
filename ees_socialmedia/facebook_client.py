@@ -16,10 +16,9 @@ class Facebook:
     def fetch_posts(self, start_time, end_time):
         posts = []
 
-        posts_response = self.graph.get_connections(self.profile["id"], "posts", {
-            'since': start_time,
-            'end': end_time
-        })
+        # since=start_time, until=end_time not work, facebook bug: https://stackoverflow.com/questions/47186494/facebook-graph-api-months-of-missing-page-posts-from-posts
+        posts_response = self.graph.get_connections(
+            self.profile["id"], "posts")
 
         while True:
             try:
@@ -34,8 +33,9 @@ class Facebook:
                         title = message_list[0]
 
                     url = f"https://www.facebook.com/{post['id']}"
-                    self.logger.info(f"Fetching from: {url}")
-        
+                    self.logger.info(
+                        f"Fetching from: {url} from {start_time} to {end_time} {post['created_time']}")
+
                     posts.append({
                         'id': post['id'],
                         'url': url,
@@ -48,7 +48,8 @@ class Facebook:
                     })
 
                 # Attempt to make a request to the next page of data, if it exists.
-                posts_response = requests.get(posts_response["paging"]["next"]).json()
+                posts_response = requests.get(
+                    posts_response["paging"]["next"]).json()
             except KeyError as exception:
                 break
 

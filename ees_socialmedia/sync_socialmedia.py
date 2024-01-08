@@ -27,31 +27,33 @@ class SyncSocialMedia:
         self.end_time = end_time
 
     def fetch_and_append_videos_to_queue(self, duration):
-        documents = self.youtube_client.fetch_videos()
+        document_list = self.youtube_client.fetch_videos()
+        documents = {"type": YOUTUBE, "data": document_list}
 
         if documents:
-            self.logger.debug(
+            self.logger.info(
                 f"Thread ID {threading.get_ident()} find {len(documents.get('data'))} drive items"
             )
             self.queue.put(documents)
-            self.logger.debug(
+            self.logger.info(
                 f"Thread ID {threading.get_ident()} added list of {len(documents.get('data'))} drive items into the queue"
             )
-            return documents
+            return document_list
 
     def fetch_and_append_posts_to_queue(self, duration):
         start_time, end_time = duration[0], duration[1]
-        documents = self.facebook_client.fetch_posts(start_time, end_time)
+        document_list = self.facebook_client.fetch_posts(start_time, end_time)
+        documents = {"type": FACEBOOK, "data": document_list}
 
         if documents:
-            self.logger.debug(
-                f"Thread ID {threading.get_ident()} find {len(documents.get('data'))} drive items"
+            self.logger.info(
+                f"Thread ID {threading.get_ident()} find {len(documents.get('data'))} posts from {start_time} to {end_time}"
             )
             self.queue.put(documents)
-            self.logger.debug(
-                f"Thread ID {threading.get_ident()} added list of {len(documents.get('data'))} drive items into the queue"
+            self.logger.info(
+                f"Thread ID {threading.get_ident()} added list of {len(documents.get('data'))} posts into the queue"
             )
-            return documents
+            return document_list
 
     def perform_sync(self, producer, date_ranges, thread_count, collection):
         self.logger.info(f"fetching data from {collection}")
@@ -63,17 +65,18 @@ class SyncSocialMedia:
             if collection == YOUTUBE:
                 time_range_list = [(date_ranges[0], date_ranges[-1])]
                 fetched_documents += producer(
-                    thread_count, self.fetch_and_append_videos_to_queue, [], time_range_list, wait=True)
+                    1, self.fetch_and_append_videos_to_queue, [], time_range_list, wait=True)
 
             if collection == FACEBOOK:
                 time_range_list = [(date_ranges[num], date_ranges[num + 1])
                                    for num in range(0, thread_count)]
+                # facebook query since=start_time, until=end_time has bug, cannot do multithread
                 fetched_documents += producer(
-                    thread_count, self.fetch_and_append_posts_to_queue, [], time_range_list, wait=True)
+                    1, self.fetch_and_append_posts_to_queue, [], time_range_list, wait=True)
 
         except Exception as exception:
             self.logger.error(
-                f"Error while fetching videos. Error: {exception}")
+                f"Error while fetching social media. Error: {exception}")
 
         for docs in fetched_documents:
             for doc in docs:

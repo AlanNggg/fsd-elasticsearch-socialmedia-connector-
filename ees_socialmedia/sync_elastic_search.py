@@ -2,7 +2,7 @@
 import threading
 
 from elasticsearch import Elasticsearch
-from elasticsearch.helpers import bulk
+from elasticsearch.helpers import bulk, scan
 
 from .checkpointing import Checkpoint
 from .utils import split_documents_into_equal_chunks
