@@ -17,7 +17,7 @@ from .local_storage import LocalStorage
 from .sync_elastic_search import SyncElasticSearch
 from .sync_enterprise_search import SyncEnterpriseSearch
 from .sync_socialmedia import SyncSocialMedia
-from .utils import get_current_time
+from .utils import get_current_time, split_date_range_into_chunks
 
 INDEXING_TYPE = "full"
 
@@ -25,12 +25,19 @@ INDEXING_TYPE = "full"
 class FullSyncCommand(BaseCommand):
     """This class start executions of fullsync feature."""
 
-    def start_producer(self, documents_to_index):
+    def start_producer(self, queue):
         """This method starts async calls for the producer which is responsible
         for fetching documents from the Network Drive and pushing them in the shared queue
         :param queue: Shared queue to store the fetched documents
         """
         self.logger.debug("Starting the full indexing..")
+
+        current_time = (datetime.utcnow()).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        thread_count = self.config.get_value("socialmedia_sync_thread_count")
+
+        start_time, end_time = self.config.get_value(
+            "start_time"), current_time
 
         try:
             sync_socialmedia = SyncSocialMedia(
@@ -39,25 +46,37 @@ class FullSyncCommand(BaseCommand):
                 self.youtube_client,
                 self.facebook_client,
                 self.indexing_rules,
-                documents_to_index,
+                queue,
+                start_time,
+                end_time
+            )
+            datelist = split_date_range_into_chunks(
+                start_time,
+                end_time,
+                thread_count,
             )
             for collection in self.config.get_value("socialmedia.collections"):
                 storage_with_collection = self.local_storage.get_storage_with_collection()
-                storage_with_collection["global_keys"][collection] = sync_socialmedia.perform_sync(collection)
+                storage_with_collection["global_keys"][collection] = sync_socialmedia.perform_sync(
+                    self.producer, datelist, thread_count, collection)
 
         except Exception as exception:
-            self.logger.error("Error while Fetching from the Social Media. Checkpoint not saved")
+            self.logger.error(
+                "Error while Fetching from the Social Media. Checkpoint not saved")
             raise exception
 
         self.local_storage.update_storage(storage_with_collection)
 
-    def start_consumer(self, documents_to_index):
+    def start_consumer(self, queue):
         """This method starts async calls for the consumer which is responsible for indexing documents to the Enterprise Search
         :param queue: Shared queue to fetch the stored documents
         """
-        logger = self.logger
-        sync_es = SyncElasticSearch(self.config, logger, self.elastic_search_custom_client, documents_to_index)
-        sync_es.perform_sync()
+        thread_count = self.config.get_value(
+            "enterprise_search_sync_thread_count")
+        sync_es = SyncElasticSearch(
+            self.config, self.logger, self.elastic_search_custom_client, queue)
+
+        self.consumer(thread_count, sync_es.perform_sync)
 
     def execute(self):
         """This function execute the full sync."""
@@ -68,8 +87,8 @@ class FullSyncCommand(BaseCommand):
 
         logger.info(f"Indexing started at: {current_time}")
 
-        documents_to_index = []
-        self.start_producer(documents_to_index)
-        self.start_consumer(documents_to_index)
+        queue = ConnectorQueue(logger)
+        self.start_producer(queue)
+        self.start_consumer(queue)
         checkpoint.set_checkpoint(current_time, INDEXING_TYPE, 'socialmedia')
         logger.info(f"Indexing ended at: {get_current_time()}")

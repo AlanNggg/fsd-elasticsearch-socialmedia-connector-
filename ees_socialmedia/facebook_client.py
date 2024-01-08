@@ -16,7 +16,10 @@ class Facebook:
     def fetch_posts(self, start_time, end_time):
         posts = []
 
-        posts_response = self.graph.get_connections(self.profile["id"], "posts")
+        posts_response = self.graph.get_connections(self.profile["id"], "posts", {
+            'since': start_time,
+            'end': end_time
+        })
 
         while True:
             try:

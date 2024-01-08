@@ -56,10 +56,12 @@ class BaseCommand:
         stream_handler = logging.StreamHandler()
 
         info_log_file = self.args.info_log_file
-        info_file_handler = logging.FileHandler(info_log_file, mode='w', encoding='utf-8')
+        info_file_handler = logging.FileHandler(
+            info_log_file, mode='w', encoding='utf-8')
 
         error_log_file = self.args.error_log_file
-        error_file_handler = logging.FileHandler(error_log_file, mode='w', encoding='utf-8')
+        error_file_handler = logging.FileHandler(
+            error_log_file, mode='w', encoding='utf-8')
         # Uncomment the following lines to output logs in ECS-compatible format
         # formatter = ecs_logging.StdlibFormatter()
         # handler.setFormatter(formatter)
@@ -92,7 +94,7 @@ class BaseCommand:
     @cached_property
     def elastic_search_custom_client(self):
         return ElasticSearchWrapper(self.logger, self.config, self.args)
-    
+
     @cached_property
     def config(self):
         """Get the configuration for the connector for the running command."""
@@ -105,7 +107,7 @@ class BaseCommand:
         if YOUTUBE not in self.config.get_value("socialmedia.collections"):
             return None
         return Youtube(self.config, self.logger)
-    
+
     @cached_property
     def facebook_client(self):
         """Get the Facebook client instance for the running command."""
@@ -136,14 +138,14 @@ class BaseCommand:
                 return result
 
     @staticmethod
-    def consumer(thread_count, func):
+    def consumer(thread_count, func, args=()):
         """Apply async calls using multithreading to the targeted function
         :param thread_count: Total number of threads to be spawned
         :param func: The target function on which the async calls would be made
         """
         with ThreadPoolExecutor(max_workers=thread_count) as executor:
             for _ in range(thread_count):
-                executor.submit(func)
+                executor.submit(func, *args)
 
     @cached_property
     def local_storage(self):
