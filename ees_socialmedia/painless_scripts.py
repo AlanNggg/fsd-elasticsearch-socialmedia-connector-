@@ -1,9 +1,16 @@
 class PainlessScripts:
-    def update(self, id):
+    def update_by_query(self, id, doc):
         return {
             "script": {
-                "source": "ctx._source.count++",
-                "lang": "painless"
+                "source": r'''
+                for (entry in params.doc.entrySet()) { 
+                    ctx._source[entry.getKey()] = entry.getValue() 
+                }  
+''',
+                "lang": "painless",
+                "params": {
+                    "doc": doc
+                }
             },
             "query": {
                 "term": {

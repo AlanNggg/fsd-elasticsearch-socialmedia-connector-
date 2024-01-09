@@ -79,11 +79,12 @@ class IncrementalSyncCommand(BaseCommand):
         Enterprise Search
         :param queue: Shared queue to fetch the stored documents
         """
-        thread_count = self.config.get_value(
-            "enterprise_search_sync_thread_count")
+        # thread_count = self.config.get_value(
+        #     "enterprise_search_sync_thread_count")
+        thread_count = 1
         sync_es = SyncElasticSearch(
             self.config, self.logger, self.elastic_search_custom_client, queue)
-        self.consumer(thread_count, sync_es.perform_sync, (True))
+        self.consumer(thread_count, sync_es.perform_sync, (True,))
 
     def execute(self):
         """This function execute the start function."""

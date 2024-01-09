@@ -24,47 +24,14 @@ class SyncElasticSearch:
         self.total_documents_found += len(documents)
         if documents:
             if upsert:
-                query = {
-                    "query": {
-                        "match_all": {}
-                    }
-                }
-                # Fetch all documents using the scan helper
-                results = scan(
-                    self.elastic_search_client,
-                    index=self.source,
-                    query=query,
-                    # Number of documents to retrieve per batch (adjust as needed)
-                    size=1000
+                values = self.elastic_search_custom_client.index_documents_incremental(
+                    documents=documents,
                 )
-
-                fetched_documents = {}
-                for item in results:
-                    item_id = item['_source']['id']
-                    fetched_documents[item_id] = {
-                        '_op_type': 'update',
-                        '_id': item['_id'],
-                    }
-
-                documents_to_update = []
-                documents_to_insert = []
-                for item in documents:
-                    item_id = item['id']
-                    if item_id in fetched_documents:
-                        merged_item = {
-                            **fetched_documents[item_id],
-                            'doc': item
-                        }  # Merge the dictionaries
-                        documents_to_update.append(merged_item)
-                    else:
-                        documents_to_insert.append(item)
-
-                documents = documents_to_update + documents_to_insert
-
-            values = self.elastic_search_custom_client.index_documents(
-                documents=documents,
-                timeout=CONNECTION_TIMEOUT,
-            )
+            else:
+                values = self.elastic_search_custom_client.index_documents(
+                    documents=documents,
+                    timeout=CONNECTION_TIMEOUT,
+                )
 
             if values:
                 documents_indexed, errors = values

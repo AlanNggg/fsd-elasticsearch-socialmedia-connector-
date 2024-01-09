@@ -76,8 +76,9 @@ class FullSyncCommand(BaseCommand):
         """This method starts async calls for the consumer which is responsible for indexing documents to the Enterprise Search
         :param queue: Shared queue to fetch the stored documents
         """
-        thread_count = self.config.get_value(
-            "enterprise_search_sync_thread_count")
+        # thread_count = self.config.get_value(
+        #     "enterprise_search_sync_thread_count")
+        thread_count = 1
         sync_es = SyncElasticSearch(
             self.config, self.logger, self.elastic_search_custom_client, queue)
 
