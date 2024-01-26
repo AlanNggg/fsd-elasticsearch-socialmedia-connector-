@@ -55,8 +55,8 @@ class ElasticSearchWrapper:
         raise Exception("Not Implemented")
 
     def index_documents_incremental(self, documents):
-        try:
-            for doc in documents:
+        for doc in documents:
+            try:
                 body = self.queries.update_by_query(doc['id'], doc)
 
                 value = self.elastic_search_client.update_by_query(
@@ -70,10 +70,10 @@ class ElasticSearchWrapper:
                         document=doc
                     )
 
-            return len(documents), 0
-        except Exception as exception:
-            self.logger.error(
-                f"Error while indexing the documents. Error: {exception}")
+                return len(documents), 0
+            except Exception as exception:
+                self.logger.error(
+                    f"Error while indexing the documents. Error: {exception}")
         return None
 
     def index_documents(self, documents, timeout):
