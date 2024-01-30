@@ -86,6 +86,10 @@ class IncrementalSyncCommand(BaseCommand):
             self.config, self.logger, self.elastic_search_custom_client, queue)
         self.consumer(thread_count, sync_es.perform_sync, (True,))
 
+        results = sync_es.get_status()
+
+        return results
+
     def execute(self):
         """This function execute the start function."""
         config = self.config
@@ -105,6 +109,10 @@ class IncrementalSyncCommand(BaseCommand):
 
         queue = ConnectorQueue(logger)
         self.start_producer(queue, time_range)
-        self.start_consumer(queue)
+        total_documents_found, total_documents_indexed, total_documents_appended, total_documents_updated, total_documents_failed = self.start_consumer(
+            queue)
+
         checkpoint.set_checkpoint(current_time, INDEXING_TYPE, 'socialmedia')
         logger.info(f"Indexing ended at: {get_current_time()}")
+
+        return total_documents_found, total_documents_appended, total_documents_updated, total_documents_failed

@@ -20,40 +20,67 @@ class SyncElasticSearch:
         self.total_documents_indexed = 0
         self.total_documents_found = 0
         self.total_documents_failed = 0
-        self.total_documents_appended
+
+        self.total_documents_appended = 0
+        self.total_documents_updated = 0
 
     def index_documents(self, documents, upsert=False):
-        self.total_documents_found += len(documents)
         if documents:
+            self.total_documents_found += len(documents)
+
             if upsert:
                 values = self.elastic_search_custom_client.index_documents_incremental(
                     documents=documents,
+                    timeout=CONNECTION_TIMEOUT,
                 )
+                if values:
+                    documents_appended, documents_updated, errors = values
+
+                    documents_indexed = documents_appended + documents_updated
+
+                    self.total_documents_appended += documents_appended
+                    self.total_documents_updated += documents_updated
+
+                    if errors:
+                        self.total_documents_failed += len(errors)
+
+                        for error in errors:
+                            self.logger.error(
+                                "Error while indexing. Error: %s"
+                                % (error)
+                            )
+                    self.logger.info(
+                        f"[{threading.get_ident()}] Successfully indexed {documents_indexed} documents to the workplace"
+                    )
+                else:
+                    self.logger.error(
+                        f"[{threading.get_ident()}] Failed to index documents to the workplace"
+                    )
             else:
                 values = self.elastic_search_custom_client.index_documents(
                     documents=documents,
                     timeout=CONNECTION_TIMEOUT,
                 )
+                if values:
+                    documents_indexed, errors = values
 
-            if values:
-                documents_indexed, errors = values
+                    self.total_documents_indexed += documents_indexed
 
-                if errors:
-                    self.total_documents_failed += len(errors)
+                    if errors:
+                        self.total_documents_failed += len(errors)
 
-                    for error in errors:
-                        self.logger.error(
-                            "Error while indexing. Error: %s"
-                            % (error)
-                        )
-                self.logger.info(
-                    f"[{threading.get_ident()}] Successfully indexed {documents_indexed} documents to the workplace"
-                )
-                self.total_documents_indexed += documents_indexed
-            else:
-                self.logger.error(
-                    f"[{threading.get_ident()}] Failed to index documents to the workplace"
-                )
+                        for error in errors:
+                            self.logger.error(
+                                "Error while indexing. Error: %s"
+                                % (error)
+                            )
+                    self.logger.info(
+                        f"[{threading.get_ident()}] Successfully indexed {documents_indexed} documents to the workplace"
+                    )
+                else:
+                    self.logger.error(
+                        f"[{threading.get_ident()}] Failed to index documents to the workplace"
+                    )
 
     def perform_sync(self, upsert=False):
         try:
@@ -80,3 +107,6 @@ class SyncElasticSearch:
             self.logger.error(exception)
         self.logger.info(f"Thread ID: {threading.get_ident()} Total {self.total_documents_indexed} documents \
             indexed out of: {self.total_documents_found} till now..")
+
+    def get_status(self):
+        return self.total_documents_found, self.total_documents_indexed, self.total_documents_appended, self.total_documents_updated, self.total_documents_failed

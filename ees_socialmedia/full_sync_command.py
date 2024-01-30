@@ -84,6 +84,10 @@ class FullSyncCommand(BaseCommand):
 
         self.consumer(thread_count, sync_es.perform_sync)
 
+        results = sync_es.get_status()
+
+        return results
+
     def execute(self):
         """This function execute the full sync."""
         config = self.config
@@ -95,6 +99,8 @@ class FullSyncCommand(BaseCommand):
 
         queue = ConnectorQueue(logger)
         self.start_producer(queue)
-        self.start_consumer(queue)
+        total_documents_found, total_documents_indexed, total_documents_appended, total_documents_updated, total_documents_failed = self.start_consumer(
+            queue)
         checkpoint.set_checkpoint(current_time, INDEXING_TYPE, 'socialmedia')
         logger.info(f"Indexing ended at: {get_current_time()}")
+        return total_documents_found, total_documents_indexed, total_documents_failed

@@ -6,7 +6,7 @@
 """This module perform operations related to Enterprise Search based on the Enterprise Search version
 """
 from elasticsearch import Elasticsearch
-from elasticsearch.helpers import BulkIndexError, bulk
+from elasticsearch.helpers import BulkIndexError, bulk, scan, streaming_bulk
 
 from .painless_scripts import PainlessScripts
 
@@ -54,7 +54,28 @@ class ElasticSearchWrapper:
     def delete_documents(self, document_ids):
         raise Exception("Not Implemented")
 
-    def index_documents_incremental(self, documents):
+    def get_all_documents(self):
+        query = {
+            "query": {
+                "match_all": {}
+            }
+        }
+        # Fetch all documents using the scan helper
+        results = scan(
+            self.elastic_search_client,
+            index=self.source,
+            query=query,
+            # Number of documents to retrieve per batch (adjust as needed)
+            size=1000
+        )
+
+        return results
+
+    def index_documents_incremental(self, documents, timeout):
+        total_documents_appended = 0
+        total_documents_updated = 0
+        errors = []
+
         for doc in documents:
             try:
                 body = self.queries.update_by_query(doc['id'], doc)
@@ -64,17 +85,27 @@ class ElasticSearchWrapper:
 
                 updated = value['updated']
 
+                total_documents_updated += updated
+
                 if not updated:
+                    #  append if updated = 0
                     value = self.elastic_search_client.index(
                         index=self.source,
                         document=doc
                     )
 
-                return len(documents), 0
+                    created = value['result']
+
+                    if created == 'created':
+                        total_documents_appended += 1
+                    else:
+                        errors.append(value)
+
             except Exception as exception:
                 self.logger.error(
                     f"Error while indexing the documents. Error: {exception}")
-        return None
+
+        return total_documents_appended, total_documents_updated, errors
 
     def index_documents(self, documents, timeout):
         """Indexes one or more new documents into a custom content source, or updates one
@@ -90,8 +121,7 @@ class ElasticSearchWrapper:
                 index=self.source,
                 max_retries=self.retry_count,
                 request_timeout=timeout,
-                raise_on_error=False,
-                stats_only=True)
+                raise_on_error=False)
             self.logger.info(responses)
             return responses
         # except BulkIndexError as e:
