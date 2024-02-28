@@ -67,7 +67,7 @@ class FullSyncCommand(BaseCommand):
                 queue.end_signal()
         except Exception as exception:
             self.logger.error(
-                "Error while Fetching from the Social Media. Checkpoint not saved")
+                f"Error while Fetching from the Social Media. Error: {exception}. Checkpoint not saved")
             raise exception
 
         self.local_storage.update_storage(storage_with_collection)
