@@ -12,6 +12,7 @@ class Facebook:
         self.access_token = self.config.get_value("facebook.access_token")
         self.graph = facebook.GraphAPI(self.access_token)
         self.profile = self.graph.get_object('me')
+        self.fsd_search_portal_client = config.fsd_search_portal_client
 
     def fetch_posts(self, start_time, end_time):
         posts = []
@@ -44,7 +45,9 @@ class Facebook:
                         'date': post['created_time'],
                         'source': 'socialmedia',
                         'category': ['post', 'facebook'],
-                        'type': 'facebook'
+                        'type': 'facebook',
+                        # click count
+                        'click_count': self.fsd_search_portal_client.get_click_count(url)
                     })
 
                 # Attempt to make a request to the next page of data, if it exists.

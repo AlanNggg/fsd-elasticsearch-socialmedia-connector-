@@ -15,9 +15,9 @@ class Youtube:
 
         self.youtube = googleapiclient.discovery.build(
             self.api_service_name, self.api_version, developerKey=self.api_key)
-        
+        self.fsd_search_portal_client = config.fsd_search_portal_client
 
-    def fetch_videos(self, start_time = None, end_time = None):
+    def fetch_videos(self, start_time=None, end_time=None):
         os.environ['http_proxy'] = 'http://proxy3.hkfsd.hksarg:8080'
         os.environ['https_proxy'] = 'http://proxy3.hkfsd.hksarg:8080'
 
@@ -54,15 +54,16 @@ class Youtube:
                     'thumbnails': playlist_item['snippet']['thumbnails']['high']['url'],
                     'source': 'socialmedia',
                     'category': ['youtube'],
-                    'type': 'youtube'
-                })        
-            
+                    'type': 'youtube',
+                    # click count
+                    'click_count': self.fsd_search_portal_client.get_click_count(url)
+                })
 
             request = self.youtube.playlistItems().list_next(request, playlist_item_response)
 
         return videos
 
-    def search(self, start_time = None, end_time = None):
+    def search(self, start_time=None, end_time=None):
         request = self.youtube.search().list(
             part='id',
             channelId=self.channel_id,
