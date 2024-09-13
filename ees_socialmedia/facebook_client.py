@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import datetime
 
@@ -10,7 +11,14 @@ class Facebook:
         self.logger = logger
         self.config = config
         self.access_token = self.config.get_value("facebook.access_token")
-        self.graph = facebook.GraphAPI(self.access_token)
+        
+        self.http_proxy = self.config.get_value("proxy")
+        
+        if self.http_proxy:
+            os.environ['http_proxy'] = self.http_proxy
+            os.environ['https_proxy'] = self.http_proxy
+
+        self.graph = facebook.GraphAPI(self.access_token)        
         self.profile = self.graph.get_object('me')
         self.fsd_search_portal_client = config.fsd_search_portal_client
 

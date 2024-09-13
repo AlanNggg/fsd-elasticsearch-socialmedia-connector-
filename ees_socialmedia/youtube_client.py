@@ -13,14 +13,17 @@ class Youtube:
         self.api_key = self.config.get_value("youtube.api_key")
         self.channel_id = self.config.get_value("youtube.channel_id")
 
+        self.http_proxy = self.config.get_value("proxy")
+        
+        if self.http_proxy:
+            os.environ['http_proxy'] = self.http_proxy
+            os.environ['https_proxy'] = self.http_proxy
+            
         self.youtube = googleapiclient.discovery.build(
             self.api_service_name, self.api_version, developerKey=self.api_key)
         self.fsd_search_portal_client = config.fsd_search_portal_client
 
     def fetch_videos(self, start_time=None, end_time=None):
-        os.environ['http_proxy'] = 'http://proxy3.hkfsd.hksarg:8080'
-        os.environ['https_proxy'] = 'http://proxy3.hkfsd.hksarg:8080'
-
         channel_response = self.youtube.channels().list(
             part='contentDetails',
             id=self.channel_id,

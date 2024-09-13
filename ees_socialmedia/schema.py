@@ -18,6 +18,11 @@ def coerce_rfc_3339_date(input_date):
 
 
 schema = {
+    'proxy': {
+        'required': False,
+        'type': 'string',
+        'empty': False
+    },
     'youtube.api_version': {
         'required': False,
         'type': 'string',
